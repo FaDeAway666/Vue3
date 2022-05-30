@@ -120,10 +120,12 @@ function createGetter(isReadonly = false, shallow = false) {
       return res
     }
 
+    // 如果不是readonly的对象，则收集依赖
     if (!isReadonly) {
       track(target, TrackOpTypes.GET, key)
     }
 
+    // 如果是shallow，不执行后续对嵌套对象的reactive
     if (shallow) {
       return res
     }
@@ -133,6 +135,7 @@ function createGetter(isReadonly = false, shallow = false) {
       return targetIsArray && isIntegerKey(key) ? res : res.value
     }
 
+    // 如果target的key仍然是一个对象，则将这个嵌套的对象也进行reactive
     if (isObject(res)) {
       // Convert returned value into a proxy as well. we do the isObject check
       // here to avoid invalid value warning. Also need to lazy access readonly
@@ -163,6 +166,7 @@ function createSetter(shallow = false) {
         value = toRaw(value)
         oldValue = toRaw(oldValue)
       }
+      // 旧值是ref，新值不是ref，则直接给旧值赋值
       if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
         oldValue.value = value
         return true
@@ -179,8 +183,10 @@ function createSetter(shallow = false) {
     // don't trigger if target is something up in the prototype chain of original
     if (target === toRaw(receiver)) {
       if (!hadKey) {
+        // 不存在的key，则走triggerADD
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
+        // 已存在的key，走triggerSET
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }
@@ -211,6 +217,7 @@ function ownKeys(target: object): (string | symbol)[] {
   return Reflect.ownKeys(target)
 }
 
+// 一个普通对象的proxy默认具有这五种handler
 export const mutableHandlers: ProxyHandler<object> = {
   get,
   set,
@@ -241,6 +248,7 @@ export const readonlyHandlers: ProxyHandler<object> = {
   }
 }
 
+// shallow reactive对象的get和set拦截
 export const shallowReactiveHandlers = /*#__PURE__*/ extend(
   {},
   mutableHandlers,

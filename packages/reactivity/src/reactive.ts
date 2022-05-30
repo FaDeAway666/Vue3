@@ -40,6 +40,7 @@ const enum TargetType {
   COLLECTION = 2
 }
 
+// 只有定义的这些type的对象能设置为reactive
 function targetTypeMap(rawType: string) {
   switch (rawType) {
     case 'Object':
@@ -185,6 +186,7 @@ function createReactiveObject(
   collectionHandlers: ProxyHandler<any>,
   proxyMap: WeakMap<Target, any>
 ) {
+  // 如果不是对象，直接返回
   if (!isObject(target)) {
     if (__DEV__) {
       console.warn(`value cannot be made reactive: ${String(target)}`)
@@ -205,6 +207,7 @@ function createReactiveObject(
     return existingProxy
   }
   // only specific value types can be observed.
+  // 只有非INVALID类型的target能够设置响应式
   const targetType = getTargetType(target)
   if (targetType === TargetType.INVALID) {
     return target
