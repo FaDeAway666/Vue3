@@ -16,6 +16,7 @@ import { ComputedRefImpl } from './computed'
 // which maintains a Set of subscribers, but we simply store them as
 // raw Sets to reduce memory overhead.
 type KeyToDepMap = Map<any, Dep>
+// 一个map，key是target，value是和target的key与dep的map
 const targetMap = new WeakMap<any, KeyToDepMap>()
 
 // The number of effects currently being tracked recursively.
@@ -138,7 +139,7 @@ export class ReactiveEffect<T = any> {
     }
   }
 }
-
+// 清除effect中的deps
 function cleanupEffect(effect: ReactiveEffect) {
   const { deps } = effect
   if (deps.length) {
@@ -209,7 +210,7 @@ export function resetTracking() {
   const last = trackStack.pop()
   shouldTrack = last === undefined ? true : last
 }
-
+// 收集依赖
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (shouldTrack && activeEffect) {
     let depsMap = targetMap.get(target)
@@ -236,6 +237,7 @@ export function trackEffects(
   let shouldTrack = false
   if (effectTrackDepth <= maxMarkerBits) {
     if (!newTracked(dep)) {
+      // 用位运算设置newtracked状态
       dep.n |= trackOpBit // set newly tracked
       shouldTrack = !wasTracked(dep)
     }
@@ -243,8 +245,9 @@ export function trackEffects(
     // Full cleanup mode.
     shouldTrack = !dep.has(activeEffect!)
   }
-
+  // 没有收集过，才需要收集
   if (shouldTrack) {
+    // 当前effect推入到dep队列中，activeEffect中也保存一份dep进行关联
     dep.add(activeEffect!)
     activeEffect!.deps.push(dep)
     if (__DEV__ && activeEffect!.onTrack) {
@@ -270,12 +273,15 @@ export function trigger(
     return
   }
 
+  // deps是待触发的effect的集合
   let deps: (Dep | undefined)[] = []
+  // type为CLEAR，触发deps中所有effect
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared
     // trigger all effects for target
     deps = [...depsMap.values()]
   } else if (key === 'length' && isArray(target)) {
+    // 如果为length，
     depsMap.forEach((dep, key) => {
       if (key === 'length' || key >= (newValue as number)) {
         deps.push(dep)
@@ -320,6 +326,7 @@ export function trigger(
     ? { target, type, key, newValue, oldValue, oldTarget }
     : undefined
 
+  // dep只有一个，直接触发effect
   if (deps.length === 1) {
     if (deps[0]) {
       if (__DEV__) {
@@ -329,6 +336,7 @@ export function trigger(
       }
     }
   } else {
+    // 如果dep有多个，合并成一个dep再进行触发
     const effects: ReactiveEffect[] = []
     for (const dep of deps) {
       if (dep) {
@@ -349,6 +357,7 @@ export function triggerEffects(
 ) {
   // spread into array for stabilization
   const effects = isArray(dep) ? dep : [...dep]
+  // computed effects先触发
   for (const effect of effects) {
     if (effect.computed) {
       triggerEffect(effect, debuggerEventExtraInfo)
@@ -369,6 +378,7 @@ function triggerEffect(
     if (__DEV__ && effect.onTrigger) {
       effect.onTrigger(extend({ effect }, debuggerEventExtraInfo))
     }
+    // 有调度触发调度，没有触发run
     if (effect.scheduler) {
       effect.scheduler()
     } else {

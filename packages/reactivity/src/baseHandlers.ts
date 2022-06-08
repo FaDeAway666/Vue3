@@ -74,6 +74,7 @@ function createArrayInstrumentations() {
   })
   // instrument length-altering mutation methods to avoid length being tracked
   // which leads to infinite loops in some cases (#2137)
+  // 这些操作的时候不需要track
   ;(['push', 'pop', 'shift', 'unshift', 'splice'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       pauseTracking()
@@ -110,12 +111,14 @@ function createGetter(isReadonly = false, shallow = false) {
 
     const targetIsArray = isArray(target)
 
+    // 如果target是array，且key为数组的原始方法，会去触发这些方法需要进行的额外操作
     if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
       return Reflect.get(arrayInstrumentations, key, receiver)
     }
 
     const res = Reflect.get(target, key, receiver)
 
+    // 如果key是symbol或不需要track的key，返回getter的值
     if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
       return res
     }
@@ -135,7 +138,7 @@ function createGetter(isReadonly = false, shallow = false) {
       return targetIsArray && isIntegerKey(key) ? res : res.value
     }
 
-    // 如果target的key仍然是一个对象，则将这个嵌套的对象也进行reactive
+    // 如果target[key]仍然是一个对象，则将这个嵌套的对象也进行reactive
     if (isObject(res)) {
       // Convert returned value into a proxy as well. we do the isObject check
       // here to avoid invalid value warning. Also need to lazy access readonly

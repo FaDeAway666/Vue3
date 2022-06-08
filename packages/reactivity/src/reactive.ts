@@ -193,6 +193,7 @@ function createReactiveObject(
     }
     return target
   }
+  // 如果是一个proxy，也直接返回
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
   if (
@@ -207,7 +208,7 @@ function createReactiveObject(
     return existingProxy
   }
   // only specific value types can be observed.
-  // 只有非INVALID类型的target能够设置响应式
+  // 只有非INVALID类型的target能够设置响应式，基础类型不能使用reactive设置响应式
   const targetType = getTargetType(target)
   if (targetType === TargetType.INVALID) {
     return target
