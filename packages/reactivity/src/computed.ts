@@ -41,7 +41,7 @@ export class ComputedRefImpl<T> {
     isReadonly: boolean,
     isSSR: boolean
   ) {
-    // 创建reactiveEffect
+    // 创建reactiveEffect，给effect添加scheduler
     this.effect = new ReactiveEffect(getter, () => {
       if (!this._dirty) {
         this._dirty = true
@@ -56,7 +56,7 @@ export class ComputedRefImpl<T> {
   get value() {
     // the computed ref may get wrapped by other proxies e.g. readonly() #3376
     const self = toRaw(this)
-    // computed.value的时候，收集当前
+    // computed.value的时候，收集当前computed实例作为依赖
     trackRefValue(self)
     if (self._dirty || !self._cacheable) {
       self._dirty = false

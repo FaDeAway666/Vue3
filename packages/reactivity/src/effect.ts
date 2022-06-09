@@ -46,6 +46,8 @@ export type DebuggerEventExtraInfo = {
   oldTarget?: Map<any, any> | Set<any>
 }
 
+// 第一个赋值activeEffect是componentUpdateFn，会在页面加载之前执行一次，
+// 所以在调用track和trackEffects的时候这个值都会存在
 export let activeEffect: ReactiveEffect | undefined
 
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')

@@ -1,0 +1,48 @@
+<script src="../../dist/vue.global.js"></script>
+
+<div id="demo">
+	<div>{{currentBranch}}</div>
+	<button @click="change">click</button>
+</div>
+
+<script>
+const { createApp, ref, watchEffect } = Vue
+const API_URL = `https://api.github.com/repos/vuejs/core/commits?per_page=3&sha=`
+
+const truncate = v => {
+  const newline = v.indexOf('\n')
+  return newline > 0 ? v.slice(0, newline) : v
+}
+
+const formatDate = v => v.replace(/T|Z/g, ' ')
+
+createApp({
+  setup() {
+    const currentBranch = ref('main')
+		const change = () => {
+			currentBranch.value = "dev"
+		}
+    return {
+      currentBranch,
+			change
+    }
+  }
+}).mount('#demo')
+</script>
+
+<style>
+  #demo {
+    font-family: 'Helvetica', Arial, sans-serif;
+  }
+  a {
+    text-decoration: none;
+    color: #f66;
+  }
+  li {
+    line-height: 1.5em;
+    margin-bottom: 20px;
+  }
+  .author, .date {
+    font-weight: bold;
+  }
+</style>

@@ -106,13 +106,16 @@ class RefImpl<T> {
     this._value = __v_isShallow ? value : toReactive(value)
   }
 
+  // Ref 的响应式是通过get、set访问器实现的，本质也就是Object.defineProperty
   get value() {
+    // 在访问value属性的时候，收集当前activeEffect
     trackRefValue(this)
     return this._value
   }
 
   set value(newVal) {
     newVal = this.__v_isShallow ? newVal : toRaw(newVal)
+    // 如果值发生变更，触发effect
     if (hasChanged(newVal, this._rawValue)) {
       this._rawValue = newVal
       this._value = this.__v_isShallow ? newVal : toReactive(newVal)
