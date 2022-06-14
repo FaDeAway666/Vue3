@@ -1572,6 +1572,7 @@ function baseCreateRenderer(
       update.ownerInstance = instance
     }
 
+    // 执行componentUpdateFn，渲染页面
     update()
   }
 

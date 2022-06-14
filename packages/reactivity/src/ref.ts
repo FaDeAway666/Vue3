@@ -103,7 +103,7 @@ class RefImpl<T> {
 
   constructor(value: T, public readonly __v_isShallow: boolean) {
     this._rawValue = __v_isShallow ? value : toRaw(value)
-    this._value = __v_isShallow ? value : toReactive(value)
+    this._value = __v_isShallow ? value : toReactive(value) // 如果value是对象类型，会去用reactive对其进行处理
   }
 
   // Ref 的响应式是通过get、set访问器实现的，本质也就是Object.defineProperty

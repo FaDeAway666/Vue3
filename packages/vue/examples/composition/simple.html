@@ -1,12 +1,14 @@
 <script src="../../dist/vue.global.js"></script>
 
 <div id="demo">
-	<div>{{currentBranch}}</div>
+	<div>{{branch}}</div>
 	<button @click="change">click</button>
+	<div>{{arr.a}}</div>
+	<button @click="changeArr">clickArr</button>
 </div>
 
 <script>
-const { createApp, ref, watchEffect } = Vue
+const { createApp, ref, reactive, computed, watchEffect } = Vue
 const API_URL = `https://api.github.com/repos/vuejs/core/commits?per_page=3&sha=`
 
 const truncate = v => {
@@ -19,12 +21,24 @@ const formatDate = v => v.replace(/T|Z/g, ' ')
 createApp({
   setup() {
     const currentBranch = ref('main')
+		const branch = computed(() => {
+			return currentBranch.value + "aa"
+		})
+		const arr = ref({a: 1})
 		const change = () => {
 			currentBranch.value = "dev"
 		}
+		const changeArr = () => {
+			arr.value.a = 2
+		}
+
+		console.log(branch.value)
     return {
       currentBranch,
-			change
+			change,
+			arr,
+			branch,
+			changeArr
     }
   }
 }).mount('#demo')

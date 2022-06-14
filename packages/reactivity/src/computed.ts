@@ -43,8 +43,11 @@ export class ComputedRefImpl<T> {
   ) {
     // 创建reactiveEffect，给effect添加scheduler
     this.effect = new ReactiveEffect(getter, () => {
+      // scheduler模式是实现computed 功能的核心
+      // 这个scheduler在computed依赖的对象被更改时触发，在这里将dirty改回了true
       if (!this._dirty) {
         this._dirty = true
+        // 在此触发一下自己收集的依赖
         triggerRefValue(this)
       }
     })
@@ -56,8 +59,9 @@ export class ComputedRefImpl<T> {
   get value() {
     // the computed ref may get wrapped by other proxies e.g. readonly() #3376
     const self = toRaw(this)
-    // computed.value的时候，收集当前computed实例作为依赖
+    // 收集依赖了computed.value的effect
     trackRefValue(self)
+    // 如果_dirty为true，则执行一次自身的effect获取value，否则直接返回之前的value
     if (self._dirty || !self._cacheable) {
       self._dirty = false
       self._value = self.effect.run()!
