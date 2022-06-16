@@ -32,7 +32,13 @@ createApp({
 			arr.value.a = 2
 		}
 
-		console.log(branch.value)
+    watchEffect(() => {
+      console.log("mmm")
+      if (currentBranch.value === 'dev') {
+        console.log('devvvvv')
+      }
+    })
+
     return {
       currentBranch,
 			change,

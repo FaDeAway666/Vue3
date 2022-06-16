@@ -55,6 +55,7 @@ let currentPreFlushParentJob: SchedulerJob | null = null
 const RECURSION_LIMIT = 100
 type CountMap = Map<SchedulerJob, number>
 
+// nextTick的原理就是将传入的回调接着上个宏任务的执行过后直接触发
 export function nextTick<T = void>(
   this: T,
   fn?: (this: T) => void
@@ -81,6 +82,7 @@ function findInsertionIndex(id: number) {
   return start
 }
 
+// 手动将任务收集到队列当中
 export function queueJob(job: SchedulerJob) {
   // the dedupe search uses the startIndex argument of Array.includes()
   // by default the search index includes the current job that is being run
@@ -105,9 +107,11 @@ export function queueJob(job: SchedulerJob) {
   }
 }
 
+// 队列开启flush
 function queueFlush() {
   if (!isFlushing && !isFlushPending) {
     isFlushPending = true
+    // 开启微任务
     currentFlushPromise = resolvedPromise.then(flushJobs)
   }
 }
@@ -229,6 +233,7 @@ function flushJobs(seen?: CountMap) {
     seen = seen || new Map()
   }
 
+  // 刷新前置队列
   flushPreFlushCbs(seen)
 
   // Sort queue before flush.
@@ -238,6 +243,11 @@ function flushJobs(seen?: CountMap) {
   //    priority number)
   // 2. If a component is unmounted during a parent component's update,
   //    its update can be skipped.
+
+  // 队列刷新前需要排序
+  // 确保：
+  // 1.组件更新是从父组件到子组件
+  // 2.如果一个组件在其父组件更新的过程中被销毁了，则改组件的更新会被跳过
   queue.sort((a, b) => getId(a) - getId(b))
 
   // conditional usage of checkRecursiveUpdate must be determined out of
@@ -253,23 +263,28 @@ function flushJobs(seen?: CountMap) {
     for (flushIndex = 0; flushIndex < queue.length; flushIndex++) {
       const job = queue[flushIndex]
       if (job && job.active !== false) {
+        // 如果有超过递归最大深度的任务，跳过不执行
         if (__DEV__ && check(job)) {
           continue
         }
         // console.log(`running:`, job.id)
+        // 执行任务
         callWithErrorHandling(job, null, ErrorCodes.SCHEDULER)
       }
     }
   } finally {
+    // 清空任务队列
     flushIndex = 0
     queue.length = 0
 
+    // 执行后置任务
     flushPostFlushCbs(seen)
 
     isFlushing = false
     currentFlushPromise = null
     // some postFlushCb queued jobs!
     // keep flushing until it drains.
+    // 递归调用flush，因为有些job可能继续收集了其他的job
     if (
       queue.length ||
       pendingPreFlushCbs.length ||

@@ -303,7 +303,9 @@ function doWatch(
     }
     if (cb) {
       // watch(source, cb)
+      // 执行effect获得新值
       const newValue = effect.run()
+      // 判断值是否有变化，如果是深度监听，则深度判断值是否有变化
       if (
         deep ||
         forceTrigger ||
@@ -330,6 +332,7 @@ function doWatch(
       }
     } else {
       // watchEffect
+      // 如果是watchEffect，只执行effect
       effect.run()
     }
   }
@@ -348,6 +351,7 @@ function doWatch(
     scheduler = () => queuePreFlushCb(job)
   }
 
+  // 创建一个effect，用来被响应式系统收集
   const effect = new ReactiveEffect(getter, scheduler)
 
   if (__DEV__) {
@@ -368,6 +372,7 @@ function doWatch(
       instance && instance.suspense
     )
   } else {
+    // watcheffect会立即执行一次
     effect.run()
   }
 

@@ -193,6 +193,7 @@ export function createAppAPI<HostElement>(
 
     let isMounted = false
 
+    // 构造 app对象结构
     const app: App = (context.app = {
       _uid: uid++,
       _component: rootComponent as ConcreteComponent,
