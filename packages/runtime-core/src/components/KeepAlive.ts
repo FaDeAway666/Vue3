@@ -216,6 +216,7 @@ const KeepAliveImpl: ComponentOptions = {
 
     // cache sub tree after render
     let pendingCacheKey: CacheKey | null = null
+    // 在渲染子节点之后，缓存子节点
     const cacheSubtree = () => {
       // fix #1621, the pendingCacheKey could be 0
       if (pendingCacheKey != null) {
@@ -251,12 +252,14 @@ const KeepAliveImpl: ComponentOptions = {
       const children = slots.default()
       const rawVNode = children[0]
       if (children.length > 1) {
+        // keepAlive 只会渲染第一个子组件
         if (__DEV__) {
           warn(`KeepAlive should contain exactly one component child.`)
         }
         current = null
         return children
       } else if (
+        // 如果不是组件，或是suspense组件，则原样返回
         !isVNode(rawVNode) ||
         (!(rawVNode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) &&
           !(rawVNode.shapeFlag & ShapeFlags.SUSPENSE))
@@ -278,6 +281,7 @@ const KeepAliveImpl: ComponentOptions = {
 
       const { include, exclude, max } = props
 
+      // 如果这个组件没有被include匹配 或 被exclude匹配，也是原样返回
       if (
         (include && (!name || !matches(include, name))) ||
         (exclude && name && matches(exclude, name))
@@ -303,6 +307,7 @@ const KeepAliveImpl: ComponentOptions = {
       // beforeMount/beforeUpdate hooks.
       pendingCacheKey = key
 
+      // LRU 
       if (cachedVNode) {
         // copy over mounted state
         vnode.el = cachedVNode.el
@@ -319,6 +324,7 @@ const KeepAliveImpl: ComponentOptions = {
       } else {
         keys.add(key)
         // prune oldest entry
+        // 当到达最大缓存上限，销毁map中最先被访问的组件
         if (max && keys.size > parseInt(max as string, 10)) {
           pruneCacheEntry(keys.values().next().value)
         }
