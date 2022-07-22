@@ -200,6 +200,7 @@ function doWatch(
   }
 
   const instance = currentInstance
+  // 定义getter，作为依赖数据源的getter函数
   let getter: () => any
   let forceTrigger = false
   let isMultiSource = false
@@ -232,6 +233,7 @@ function doWatch(
         callWithErrorHandling(source, instance, ErrorCodes.WATCH_GETTER)
     } else {
       // no cb -> simple effect
+      // 没有cb的watch 等同于 watchEffect
       getter = () => {
         if (instance && instance.isUnmounted) {
           return
@@ -267,6 +269,7 @@ function doWatch(
     }
   }
 
+  // 如果是deep，则递归监听
   if (cb && deep) {
     const baseGetter = getter
     getter = () => traverse(baseGetter())
@@ -359,11 +362,14 @@ function doWatch(
     effect.onTrigger = onTrigger
   }
 
+  // 初始化的时候执行一次
   // initial run
   if (cb) {
+    // 如果是immediate，watch 会先执行一次
     if (immediate) {
       job()
     } else {
+      // 如果不是immediate，则会将effect结果赋值给oldValue，方便下次比较
       oldValue = effect.run()
     }
   } else if (flush === 'post') {

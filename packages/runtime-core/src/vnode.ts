@@ -506,6 +506,7 @@ function _createVNode(
     type = Comment
   }
 
+  // 如果type为vnode，clone一个新的VNode
   if (isVNode(type)) {
     // createVNode receiving an existing vnode. This happens in cases like
     // <component :is="vnode"/>
@@ -536,6 +537,7 @@ function _createVNode(
   }
 
   // class & style normalization.
+  // 处理props中的class和style
   if (props) {
     // for reactive or proxy objects, we need to clone it to enable mutation.
     props = guardReactiveProps(props)!
@@ -554,6 +556,7 @@ function _createVNode(
   }
 
   // encode the vnode type information into a bitmap
+  // 设置VNode的类型
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT
     : __FEATURE_SUSPENSE__ && isSuspense(type)

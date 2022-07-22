@@ -5,6 +5,7 @@ import { warn } from './warning'
 
 export interface InjectionKey<T> extends Symbol {}
 
+// provide本质上就是一个对象，inject通过key从provide中获取value
 export function provide<T>(key: InjectionKey<T> | string | number, value: T) {
   if (!currentInstance) {
     if (__DEV__) {
@@ -20,6 +21,7 @@ export function provide<T>(key: InjectionKey<T> | string | number, value: T) {
     const parentProvides =
       currentInstance.parent && currentInstance.parent.provides
     if (parentProvides === provides) {
+      // provides继承父组件的provides
       provides = currentInstance.provides = Object.create(parentProvides)
     }
     // TS doesn't allow symbol as index type

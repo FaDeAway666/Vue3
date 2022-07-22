@@ -21,6 +21,7 @@ export function injectHook(
   prepend: boolean = false
 ): Function | undefined {
   if (target) {
+    // 获取 target（组件实例） 上面type类型的hook
     const hooks = target[type] || (target[type] = [])
     // cache the error handling wrapper for injected hooks so the same hook
     // can be properly deduped by the scheduler. "__weh" stands for "with error
@@ -33,11 +34,14 @@ export function injectHook(
         }
         // disable tracking inside all lifecycle hooks
         // since they can potentially be called inside effects.
+        // 停止hook内部的依赖收集，因为可能被内部的effect调用
         pauseTracking()
         // Set currentInstance during hook invocation.
         // This assumes the hook does not synchronously trigger other hooks, which
         // can only be false when the user does something really funky.
+        // 设置currentInstance，让hook不会同时去调用其他的hook
         setCurrentInstance(target)
+        // 调用hook
         const res = callWithAsyncErrorHandling(hook, target, type, args)
         unsetCurrentInstance()
         resetTracking()
