@@ -105,9 +105,11 @@ export function baseParse(
   content: string,
   options: ParserOptions = {}
 ): RootNode {
+  // 创建AST转换器的context
   const context = createParserContext(content, options)
   const start = getCursor(context)
   return createRoot(
+    // 获取子节点的AST
     parseChildren(context, TextModes.DATA, []),
     getSelection(context, start)
   )
